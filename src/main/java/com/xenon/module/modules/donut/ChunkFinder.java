@@ -531,35 +531,33 @@ public class ChunkFinder extends Module {
 try {
     matrices.push();
     matrices.translate(-camPos.x, -camPos.y, -camPos.z);
-    
-    // Bucla for trebuie să fie AICI, în interiorul lui try
-    for (ChunkPos pos : this.flaggedChunks) {
-        if (rendered++ >= 500) break;
 
-                double x1 = pos.getStartX();
-                double z1 = pos.getStartZ();
-                double x2 = x1 + 16.0;
-                double z2 = z1 + 16.0;
-                double y1 = renderY;
-                double y2 = renderY + 0.15;
+    for (ChunkPos pos : detectedChunks) {
+        double x1 = pos.getStartX();
+        double z1 = pos.getStartZ();
+        double x2 = x1 + 16.0;
+        double z2 = z1 + 16.0;
+        double y1 = renderY - 0.1;
+        double y2 = renderY + 0.15;
 
-                batch.renderFilledBox(x1, y1, z1, x2, y2, z2, fillColor);
-                batch.renderOutlineBox(x1, y1, z1, x2, y2, z2, outlineColor);
+        batch.renderFilledBox(x1, y1, z1, x2, y2, z2, fillColor);
+        batch.renderOutlineBox(x1, y1, z1, x2, y2, z2, outlineColor);
 
-                if (tracer.getValue()) {
-                    batch.renderLine(
-                            tracerColor,
-                            camPos,
-                            new Vec3d(pos.getStartX() + 8.0, renderY, pos.getStartZ() + 8.0),
-                            2.0f
-                    );
-                }
-            }
-
-            matrices.pop();
-            batch.flush();
+        if (renderTracersSetting.getValue()) {
+            batch.renderLine(
+                    tracerColor,
+                    camPos,
+                    new Vec3d(pos.getStartX() + 8.0, mc.player.getY(), pos.getStartZ() + 8.0),
+                    2.0f
+            );
         }
     }
+
+    matrices.pop();
+    batch.flush();
+} finally {
+    batch.close();
+}
 
     private static class ChunkAnalysis {
         int rotatedCount = 0;
