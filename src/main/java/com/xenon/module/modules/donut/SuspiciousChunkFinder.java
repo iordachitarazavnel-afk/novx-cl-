@@ -198,14 +198,20 @@ try {
         private ChunkScanResult(float score, int indicatorCount, int amethystHits, int growthHits,
                                 int rotatedHits, int sourceHitsLocal, Map<OriginType, Integer> originWeights) {
             this.score = score;
-            this.indicatorCount = indicatorCount;
-            this.amethystHits = amethystHits;
-            this.growthHits = growthHits;
-            this.rotatedHits = rotatedHits;
-            this.sourceHitsLocal = sourceHitsLocal;
-            this.originWeights = originWeights;
+this.indicatorCount = indicatorCount;
+this.amethystHits = amethystHits;
+this.growthHits = growthHits;
+this.rotatedHits = rotatedHits;
+this.sourceHitsLocal = sourceHitsLocal;
+this.originWeights = originWeights;
         }
     }
 
-    private enum OriginType { AMETHYST, KELP, CAVE_VINES, VINES, ROTATED }
+    private enum OriginType {
+        AMETHYST,
+        KELP,
+        CAVE_VINES,
+        VINES,
+        ROTATED
+    }
 }
