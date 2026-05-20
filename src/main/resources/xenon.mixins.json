@@ -1,0 +1,36 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.xenon.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "xenon-refmap.json",
+  "client": [
+    "WorldRendererMixin",
+    "WorldMixin",
+    "WeatherRenderingMixin",
+    "ClientConnectionMixin",
+    "ClientWorldMixin",
+    "AbstractClientPlayerEntityMixin",
+    "CameraMixin",
+    "EntityMixin",
+    "EntityRendererMixin",
+    "LightningEntityRendererMixin",
+    "LivingEntityMixin",
+    "PlayerEntityRendererMixin",
+    "PlayerListEntryMixin",
+    "TextRendererMixin",
+    "HandledScreenAccessor",
+    "InputAccessor",
+    "MinecraftClientAccessor",
+    "MinecraftClientAttackMixin",
+    "KeyboardInputMixin",
+    "MouseMixin",
+    "ClientPlayerEntityMixin",
+    "LabelCommandRendererMixin",
+    "ChatHudMixin",
+    "ChatScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
