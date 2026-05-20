@@ -36,7 +36,6 @@ import com.xenon.module.modules.misc.HomeSetter;
 import com.xenon.module.modules.misc.NameProtect;
 import com.xenon.module.modules.misc.NameTags;
 import com.xenon.module.modules.misc.Sprint;
-import com.xenon.module.modules.misc.SkinChanger;
 import com.xenon.module.modules.misc.SwingSpeed;
 import com.xenon.module.modules.misc.TabDetector;
 import com.xenon.module.modules.misc.WeatherNotifier;
@@ -130,7 +129,6 @@ public class ModuleManager {
         modules.add(new FastPlace());
         modules.add(new AutoTool());
         modules.add(new AutoLog());
-        modules.add(new SkinChanger());
         modules.add(new Sprint());
         modules.add(new TabDetector());
         modules.add(new WeatherNotifier());
