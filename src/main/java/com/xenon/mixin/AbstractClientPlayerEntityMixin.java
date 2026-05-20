@@ -12,10 +12,10 @@ public abstract class AbstractClientPlayerEntityMixin {
 
     @Inject(method = "getSkin", at = @At("HEAD"), cancellable = true)
     private void xenon$overrideOwnSkin(CallbackInfoReturnable<SkinTextures> cir) {
-        AbstractClientPlayerEntity self = (AbstractClientPlayerEntity) (Object) this;
-        SkinTextures override = SkinChanger.getOverrideSkin(self.getUuid());
-        if (override != null) {
-            cir.setReturnValue(override);
+         //AbstractClientPlayerEntity self = (AbstractClientPlayerEntity) (Object) this;
+        // SkinTextures override = SkinChanger.getOverrideSkin(self.getUuid());
+        // if (override != null) {
+            // cir.setReturnValue(override);
         }
     }
 }
