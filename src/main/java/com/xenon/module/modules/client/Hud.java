@@ -63,7 +63,7 @@ public final class Hud extends Module {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc == null) return 100;
         return switch (el) {
-            case WATERMARK     -> mc.textRenderer.getWidth("Xenon +") + 20;
+            case WATERMARK     -> mc.textRenderer.getWidth("Hova +") + 20;
             case COORDINATES   -> mc.textRenderer.getWidth("XYZ: -00000.0 / -256.0 / -00000.0") + 14;
             case INFO          -> mc.textRenderer.getWidth("999 FPS | 999ms | 23:59:59") + 14;
             case MODULE_LIST   -> 120;
