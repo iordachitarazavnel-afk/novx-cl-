@@ -2,7 +2,7 @@ package com.xenon.module.modules.donut;
 
 import com.xenon.module.Category;
 import com.xenon.module.Module;
-import.com.xenon.setting.Setting;
+import com.xenon.setting.Setting;
 import com.xenon.utils.RenderUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -48,8 +48,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public final class ChunkFinderV2 extends Module {
-
-    public class ChunkFinderV2 extends Module {
 
     private final Setting<Boolean> fill              = new Setting<>("Fill", true);
     private final Setting<Boolean> outline           = new Setting<>("Outline", true);
