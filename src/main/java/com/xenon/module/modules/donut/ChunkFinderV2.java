@@ -49,20 +49,14 @@ import java.util.concurrent.Future;
 
 public final class ChunkFinderV2 extends Module {
 
-    Uite codul rescris complet și corect pentru noul tău sistem de setări. Am adaptat numerele de la NumberSetting ca să respecte exact constructorul tău Setting<>("Nume", valoare, minim, maxim) pe care mi l-ai arătat în exemplul cu Totemul, transformându-le în Float (f).
+    public class ChunkFinderV2 extends Module {
 
-Am ignorat și ultimul parametru (care era cel mai probabil un "step" sau pas de incrementare, de exemplu 1.0), deoarece clasa ta nu pare să îl folosească în constructor.
-
-Înlocuiește acea secțiune din ChunkFinderV2.java cu codul de mai jos:
-
-Java
     private final Setting<Boolean> fill              = new Setting<>("Fill", true);
     private final Setting<Boolean> outline           = new Setting<>("Outline", true);
     private final Setting<Boolean> tracers           = new Setting<>("Tracers", true);
     private final Setting<Boolean> highlightBlocks   = new Setting<>("Highlight Blocks", true);
     private final Setting<Boolean> chatFeedback      = new Setting<>("Chat Feedback", true);
     
-    // Ordinea a fost schimbată în: "Nume", Valoare_Implicită, Minim, Maxim
     private final Setting<Float>   scanRadius         = new Setting<>("Scan Radius", 6.0f, 2.0f, 12.0f);
     private final Setting<Float>   minScanY           = new Setting<>("Min Y", -64.0f, -64.0f, 200.0f);
     private final Setting<Float>   maxScanY           = new Setting<>("Max Y", 96.0f, -64.0f, 320.0f);
