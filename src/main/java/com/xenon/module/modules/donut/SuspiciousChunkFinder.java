@@ -204,7 +204,7 @@ this.growthHits = growthHits;
 this.rotatedHits = rotatedHits;
 this.sourceHitsLocal = sourceHitsLocal;
 this.originWeights = originWeights;
-        }
+               }
     }
 
     private enum OriginType {
