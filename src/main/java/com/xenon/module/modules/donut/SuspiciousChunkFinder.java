@@ -152,10 +152,14 @@ public class SuspiciousChunkFinder extends Module {
 
         int renderY = (int) mc.player.getY();
 
-        try (RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices)) {
-            matrices.push();
-            matrices.translate(-camPos.x, -camPos.y, -camPos.z);
-
+        RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices);
+try {
+    matrices.push();
+    matrices.translate(-camPos.x, -camPos.y, -camPos.z);
+    // Dacă mai aveai și alte linii de cod în interiorul fostului bloc "try", pune-le tot aici
+} finally {
+    batch.close();
+}
             for (ChunkPos pos : detectedChunks) {
                 double x1 = pos.getStartX();
                 double z1 = pos.getStartZ();
