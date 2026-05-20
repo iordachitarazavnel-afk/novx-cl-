@@ -1,0 +1,1 @@
+public class Z { public static void main(String[] x) throws Exception { for(java.lang.reflect.Field f : Class.forName("net.minecraft.client.render.RenderLayer").getDeclaredFields()) { if (f.getType().getName().equals("net.minecraft.client.render.RenderLayer")) System.out.println(f.getName()); } } }

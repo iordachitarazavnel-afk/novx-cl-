@@ -1,0 +1,16 @@
+import java.lang.reflect.*
+
+def cl = null
+try {
+    ClassLoader parent = getClass().getClassLoader()
+    while (parent != null) {
+        if (parent.toString().contains("loom")) {
+             cl = parent; break;
+        }
+        parent = parent.getParent()
+    }
+} catch (Exception e) {}
+
+if (cl != null) {
+   // probably not working as minecraft classes are not in buildscript classpath
+}
