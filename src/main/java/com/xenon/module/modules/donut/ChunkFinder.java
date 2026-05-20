@@ -1,12 +1,8 @@
 package com.xenon.module.modules.donut;
 
-import com.xenon.event.EventListener;
-import com.xenon.event.events.Render3DEvent;
-import com.xenon.event.events.TickEvent;
 import com.xenon.module.Category;
 import com.xenon.module.Module;
 import com.xenon.setting.Setting;
-import com.xenon.utils.CustomToast;
 import com.xenon.utils.RenderUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -15,12 +11,13 @@ import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.ItemEntity;
-import net.minecraft.item.Items;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.world.Heightmap;
 
 import java.awt.*;
 import java.util.*;
@@ -38,23 +35,24 @@ public class ChunkFinder extends Module {
     private static final int MAX_CONCURRENT_SCANS = 50;
     private static final long RESCAN_INTERVAL_MS = 5000L;
     private static final long QUEUE_REBUILD_INTERVAL_MS = 2000L;
+
     private final Set<ChunkPos> flaggedChunks = ConcurrentHashMap.newKeySet();
     private final Set<ChunkPos> notifiedChunks = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<ChunkPos, ChunkAnalysis> chunkData = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<ChunkPos, Long> scannedChunks = new ConcurrentHashMap<>();
     private final Queue<ChunkPos> scanQueue = new ConcurrentLinkedQueue<>();
     private final AtomicLong activeScans = new AtomicLong(0L);
+
     private final boolean ignorePlayerChunk = true;
-    private final Setting<Boolean> showReasons = new Setting<>("Show Reasons", true);
     private final boolean detectItems = true;
     private final double maxItems = 3.0;
+
+    private final Setting<Boolean> showReasons = new Setting<>("Show Reasons", true);
     private final Setting<Boolean> detectXP = new Setting<>("Check XP Orbs", true);
     private final Setting<Float> maxXP = new Setting<>("Max XP Orbs", 3.0f);
-    private final Setting<Boolean> alertCoorrds = new Setting<>("Alert Coordinates", true);
+    private final Setting<Boolean> alertCoords = new Setting<>("Alert Coordinates", true);
     private final Setting<Float> deepslateThreshold = new Setting<>("Deepslate Limit", 3.0f);
     private final Setting<Float> rotatedThreshold = new Setting<>("Rotated DS Limit", 1.0f);
-
-    // ── Tracer & Color settings ───────────────────────────────────────────
     private final Setting<Boolean> tracer = new Setting<>("Tracer", false);
 
     public enum ChunkColor { GREEN, RED, WHITE, YELLOW, CYAN, ORANGE }
@@ -69,56 +67,15 @@ public class ChunkFinder extends Module {
     private long lastQueueRebuild = 0L;
 
     public ChunkFinder() {
-        super("Chunk Finder", "Detects suspicious chunks", -1, Category.DONUT);
-        this.addSettings(
-                this.alertCoorrds, this.showReasons,
-                this.detectXP, this.maxXP,
-                this.deepslateThreshold, this.rotatedThreshold,
-                this.tracer, this.chunkColor);
-    }
-
-    public void resetScans() {
-        this.scannedChunks.clear();
-        this.flaggedChunks.clear();
-        this.notifiedChunks.clear();
-        this.chunkData.clear();
-        this.scanQueue.clear();
-        this.lastPlayerChunk = null;
-        this.lastQueueRebuild = 0L;
-        if (this.pool == null || this.pool.isShutdown()) {
-            this.pool = Executors.newFixedThreadPool(THREAD_COUNT);
-        }
-    }
-
-    @EventListener
-    public void onTick(TickEvent event) {
-        if (mc.world == null) {
-            this.scanning = false;
-            if (this.pool != null) {
-                this.pool.shutdownNow();
-                this.pool = null;
-            }
-            this.scannedChunks.clear();
-            this.flaggedChunks.clear();
-            this.notifiedChunks.clear();
-            this.chunkData.clear();
-            this.scanQueue.clear();
-            this.lastPlayerChunk = null;
-            this.lastQueueRebuild = 0L;
-            return;
-        }
-
-        this.chunkItemCounts.clear();
-        this.chunkXPCounts.clear();
-        for (Entity entity : mc.world.getEntities()) {
-            if (entity instanceof ItemEntity) {
-                this.chunkItemCounts.merge(entity.getChunkPos(), 1, Integer::sum);
-                continue;
-            }
-            if (entity instanceof ExperienceOrbEntity) {
-                this.chunkXPCounts.merge(entity.getChunkPos(), 1, Integer::sum);
-            }
-        }
+        super("Chunk Finder", Category.DONUT);
+        addSetting(alertCoords);
+        addSetting(showReasons);
+        addSetting(detectXP);
+        addSetting(maxXP);
+        addSetting(deepslateThreshold);
+        addSetting(rotatedThreshold);
+        addSetting(tracer);
+        addSetting(chunkColor);
     }
 
     @Override
@@ -150,11 +107,38 @@ public class ChunkFinder extends Module {
         this.lastQueueRebuild = 0L;
     }
 
-    @EventListener
-    public void onRender(Render3DEvent event) {
-        if (mc.player == null || mc.world == null || !this.scanning) {
+    @Override
+    public void onTick() {
+        if (mc.world == null) {
+            this.scanning = false;
+            if (this.pool != null) {
+                this.pool.shutdownNow();
+                this.pool = null;
+            }
+            this.scannedChunks.clear();
+            this.flaggedChunks.clear();
+            this.notifiedChunks.clear();
+            this.chunkData.clear();
+            this.scanQueue.clear();
+            this.lastPlayerChunk = null;
+            this.lastQueueRebuild = 0L;
             return;
         }
+
+        this.chunkItemCounts.clear();
+        this.chunkXPCounts.clear();
+        for (Entity entity : mc.world.getEntities()) {
+            if (entity instanceof ItemEntity) {
+                this.chunkItemCounts.merge(entity.getChunkPos(), 1, Integer::sum);
+            } else if (entity instanceof ExperienceOrbEntity) {
+                this.chunkXPCounts.merge(entity.getChunkPos(), 1, Integer::sum);
+            }
+        }
+    }
+
+    @Override
+    public void onRender(MatrixStack matrices, float tickDelta) {
+        if (mc.player == null || mc.world == null || !this.scanning) return;
 
         int playerChunkX = (int) Math.floor(mc.player.getX() / 16.0);
         int playerChunkZ = (int) Math.floor(mc.player.getZ() / 16.0);
@@ -178,7 +162,7 @@ public class ChunkFinder extends Module {
         }
 
         this.tryStartScans();
-        this.renderFlaggedChunks(event.matrixStack);
+        this.renderFlaggedChunks(matrices);
     }
 
     private int getScanRadius() {
@@ -201,9 +185,9 @@ public class ChunkFinder extends Module {
         bfsQueue.offer(center);
         visited.add(center);
 
-        int[][] offsets = new int[][]{{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-
+        int[][] offsets = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
         long now = System.currentTimeMillis();
+
         while (!bfsQueue.isEmpty()) {
             ChunkPos current = bfsQueue.poll();
             Long scanTime = this.scannedChunks.get(current);
@@ -214,8 +198,7 @@ public class ChunkFinder extends Module {
                 ChunkPos neighbor = new ChunkPos(current.x + offset[0], current.z + offset[1]);
                 int dx = Math.abs(neighbor.x - center.x);
                 int dz = Math.abs(neighbor.z - center.z);
-                if (dx > radius || dz > radius || visited.contains(neighbor))
-                    continue;
+                if (dx > radius || dz > radius || visited.contains(neighbor)) continue;
                 visited.add(neighbor);
                 bfsQueue.offer(neighbor);
             }
@@ -223,19 +206,14 @@ public class ChunkFinder extends Module {
     }
 
     private void tryStartScans() {
-        if (!this.scanning || mc.world == null || mc.player == null || this.pool == null) {
-            return;
-        }
+        if (!this.scanning || mc.world == null || mc.player == null || this.pool == null) return;
         long now = System.currentTimeMillis();
         while (this.activeScans.get() < MAX_CONCURRENT_SCANS && !this.scanQueue.isEmpty()) {
             ChunkPos pos = this.scanQueue.poll();
-            if (pos == null)
-                continue;
+            if (pos == null) continue;
             Long lastScan = this.scannedChunks.get(pos);
-            if (lastScan != null && (now - lastScan < RESCAN_INTERVAL_MS))
-                continue;
-            if (!mc.world.isChunkLoaded(pos.x, pos.z))
-                continue;
+            if (lastScan != null && (now - lastScan < RESCAN_INTERVAL_MS)) continue;
+            if (!mc.world.isChunkLoaded(pos.x, pos.z)) continue;
 
             this.scannedChunks.put(pos, now);
             this.notifiedChunks.remove(pos);
@@ -251,14 +229,12 @@ public class ChunkFinder extends Module {
     }
 
     private void analyzeChunk(ChunkPos pos) {
-        if (mc.world == null || !this.scanning) {
-            return;
-        }
+        if (mc.world == null || !this.scanning) return;
 
         int startX = pos.getStartX();
         int startZ = pos.getStartZ();
         int worldMinY = mc.world.getBottomY();
-        int worldMaxY = mc.world.getTopY() - 1;
+        int worldMaxY = mc.world.getTopY(Heightmap.Type.WORLD_SURFACE, startX + 8, startZ + 8) - 1;
 
         ChunkAnalysis analysis = new ChunkAnalysis();
 
@@ -274,8 +250,7 @@ public class ChunkFinder extends Module {
         for (int x = 0; x < 16; ++x) {
             for (int z = 0; z < 16; ++z) {
                 for (int y = worldMinY; y <= worldMaxY; ++y) {
-                    if (!this.scanning)
-                        return;
+                    if (!this.scanning) return;
 
                     mutable.set(startX + x, y, startZ + z);
                     BlockState state = mc.world.getBlockState(mutable);
@@ -306,15 +281,11 @@ public class ChunkFinder extends Module {
                                 for (int i = 0; i < total; ++i) {
                                     BlockPos bp = veinStart.offset(Direction.UP, i);
                                     dioriteVisited.add(bp.asLong());
-                                    if (!this.isEnclosedByStone(bp)) {
-                                        enclosed = false;
-                                    }
+                                    if (!this.isEnclosedByStone(bp)) enclosed = false;
                                 }
                                 if (enclosed) {
                                     analysis.hasDioriteVein = true;
-                                    if (analysis.susBlockPos == null) {
-                                        analysis.susBlockPos = immutable;
-                                    }
+                                    if (analysis.susBlockPos == null) analysis.susBlockPos = immutable;
                                 }
                             }
                         }
@@ -334,15 +305,11 @@ public class ChunkFinder extends Module {
                                 for (int i = 0; i < total; ++i) {
                                     BlockPos bp = veinStart.offset(Direction.UP, i);
                                     obsidianVisited.add(bp.asLong());
-                                    if (!this.isEnclosedByNonObsidian(bp)) {
-                                        enclosed = false;
-                                    }
+                                    if (!this.isEnclosedByNonObsidian(bp)) enclosed = false;
                                 }
                                 if (enclosed) {
                                     analysis.hasObsidianVein = true;
-                                    if (analysis.susBlockPos == null) {
-                                        analysis.susBlockPos = immutable;
-                                    }
+                                    if (analysis.susBlockPos == null) analysis.susBlockPos = immutable;
                                 }
                             }
                         }
@@ -363,15 +330,11 @@ public class ChunkFinder extends Module {
                                             && currentState.get(Properties.VERTICAL_DIRECTION) == Direction.DOWN) {
                                         ++length;
                                         current = current.down();
-                                    } else {
-                                        break;
-                                    }
+                                    } else break;
                                 }
                                 if (length >= 60) {
                                     analysis.hasLongDripstone = true;
-                                    if (analysis.susBlockPos == null) {
-                                        analysis.susBlockPos = immutable;
-                                    }
+                                    if (analysis.susBlockPos == null) analysis.susBlockPos = immutable;
                                 }
                             }
                         }
@@ -393,15 +356,11 @@ public class ChunkFinder extends Module {
                                     if (currentState.getBlock() == Blocks.VINE) {
                                         ++vineLength;
                                         current = current.down();
-                                    } else {
-                                        break;
-                                    }
+                                    } else break;
                                 }
                                 if (vineLength >= 37) {
                                     analysis.hasLongVine = true;
-                                    if (analysis.susBlockPos == null) {
-                                        analysis.susBlockPos = immutable;
-                                    }
+                                    if (analysis.susBlockPos == null) analysis.susBlockPos = immutable;
                                 }
                             }
                         }
@@ -417,9 +376,7 @@ public class ChunkFinder extends Module {
                                 if (isKelpBase) {
                                     processedKelpBases.add(posLong);
                                     BlockPos immutable = mutable.toImmutable();
-                                    if (firstKelpPos == null) {
-                                        firstKelpPos = immutable;
-                                    }
+                                    if (firstKelpPos == null) firstKelpPos = immutable;
                                     BlockPos current = immutable.up();
                                     boolean reachedWaterSurface = false;
                                     int kelpLength = 1;
@@ -431,16 +388,12 @@ public class ChunkFinder extends Module {
                                             current = current.up();
                                             continue;
                                         }
-                                        if (currentState.getFluidState().isEmpty()) {
-                                            reachedWaterSurface = true;
-                                        }
+                                        if (currentState.getFluidState().isEmpty()) reachedWaterSurface = true;
                                         break;
                                     }
                                     if (!(kelpLength < 6 && reachedWaterSurface)) {
                                         ++kelpPlantsFound;
-                                        if (reachedWaterSurface) {
-                                            ++fullKelpPlants;
-                                        }
+                                        if (reachedWaterSurface) ++fullKelpPlants;
                                     }
                                 }
                             }
@@ -452,9 +405,7 @@ public class ChunkFinder extends Module {
 
         if (kelpPlantsFound >= 8 && kelpPlantsFound == fullKelpPlants) {
             analysis.allKelpFull = true;
-            if (analysis.susBlockPos == null) {
-                analysis.susBlockPos = firstKelpPos;
-            }
+            if (analysis.susBlockPos == null) analysis.susBlockPos = firstKelpPos;
         }
 
         this.chunkData.put(pos, analysis);
@@ -470,8 +421,7 @@ public class ChunkFinder extends Module {
         BlockPos.Mutable m = new BlockPos.Mutable(from.getX(), from.getY(), from.getZ());
         while (count <= 20) {
             m.move(dir);
-            if (!this.isTargetBlock(mc.world.getBlockState(m)))
-                break;
+            if (!this.isTargetBlock(mc.world.getBlockState(m))) break;
             ++count;
         }
         return count;
@@ -482,258 +432,131 @@ public class ChunkFinder extends Module {
         BlockPos.Mutable m = new BlockPos.Mutable(from.getX(), from.getY(), from.getZ());
         while (count <= 20) {
             m.move(dir);
-            if (!mc.world.getBlockState(m).isOf(Blocks.OBSIDIAN))
-                break;
+            if (!mc.world.getBlockState(m).isOf(Blocks.OBSIDIAN)) break;
             ++count;
         }
         return count;
     }
 
     private boolean isEnclosedByStone(BlockPos pos) {
-        Direction[] horizontalDirections = new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};
-        for (Direction d : horizontalDirections) {
-            BlockPos adj = pos.offset(d);
-            BlockState st = mc.world.getBlockState(adj);
-            if (!st.isOf(Blocks.STONE)) {
-                return false;
-            }
+        for (Direction d : new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST}) {
+            if (!mc.world.getBlockState(pos.offset(d)).isOf(Blocks.STONE)) return false;
         }
         return true;
     }
 
     private boolean isEnclosedByNonObsidian(BlockPos pos) {
-        Direction[] horizontalDirections = new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};
-        for (Direction d : horizontalDirections) {
-            BlockPos adj = pos.offset(d);
-            BlockState st = mc.world.getBlockState(adj);
-            if (st.isOf(Blocks.OBSIDIAN)) {
-                return false;
-            }
+        for (Direction d : new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST}) {
+            if (mc.world.getBlockState(pos.offset(d)).isOf(Blocks.OBSIDIAN)) return false;
         }
         return true;
     }
 
     private void evaluateChunk(ChunkPos pos, ChunkAnalysis analysis) {
+        if (this.ignorePlayerChunk && pos.equals(this.lastPlayerChunk)) return;
+        if (this.detectItems && this.chunkItemCounts.getOrDefault(pos, 0) > this.maxItems) return;
+        if (this.detectXP.getValue() && this.chunkXPCounts.getOrDefault(pos, 0) > this.maxXP.getValue()) return;
+
         boolean suspicious = false;
         List<String> reasonList = new ArrayList<>();
-
-        if (this.ignorePlayerChunk && pos.equals(this.lastPlayerChunk)) {
-            return;
-        }
-
-        if (this.detectItems && this.chunkItemCounts.getOrDefault(pos, 0) > this.maxItems) {
-            return;
-        }
-
-        if (this.detectXP.getValue() && this.chunkXPCounts.getOrDefault(pos, 0) > this.maxXP.getValue()) {
-            return;
-        }
 
         if (analysis.rotatedCount >= this.rotatedThreshold.getValue()) {
             suspicious = true;
             reasonList.add("Rotated: " + analysis.rotatedCount);
         }
-        if (analysis.hasLongDripstone) {
-            suspicious = true;
-            reasonList.add("Long Dripstone");
-        }
-        if (analysis.hasLongVine) {
-            suspicious = true;
-            reasonList.add("Long Vine");
-        }
-        if (analysis.allKelpFull) {
-            suspicious = true;
-            reasonList.add("Grown Kelp");
-        }
-        if (analysis.hasDioriteVein) {
-            suspicious = true;
-            reasonList.add("Diorite Vein");
-        }
-        if (analysis.hasObsidianVein) {
-            suspicious = true;
-            reasonList.add("Obsidian Vein");
-        }
+        if (analysis.hasLongDripstone) { suspicious = true; reasonList.add("Long Dripstone"); }
+        if (analysis.hasLongVine)      { suspicious = true; reasonList.add("Long Vine"); }
+        if (analysis.allKelpFull)      { suspicious = true; reasonList.add("Grown Kelp"); }
+        if (analysis.hasDioriteVein)   { suspicious = true; reasonList.add("Diorite Vein"); }
+        if (analysis.hasObsidianVein)  { suspicious = true; reasonList.add("Obsidian Vein"); }
 
-        if (suspicious) {
-            if (this.flaggedChunks.add(pos)) {
-                if (this.notifiedChunks.add(pos)) {
-                    StringBuilder reasons = new StringBuilder();
-                    for (String reason : reasonList) {
-                        reasons.append(reason).append(" ");
-                    }
+        if (!suspicious) return;
 
-                    int susBlockX = pos.getStartX() + 8;
-                    int susBlockZ = pos.getStartZ() + 8;
+        if (this.flaggedChunks.add(pos) && this.notifiedChunks.add(pos)) {
+            StringBuilder reasons = new StringBuilder();
+            for (String reason : reasonList) reasons.append(reason).append(" ");
 
-                    if (analysis.susBlockPos != null) {
-                        susBlockX = analysis.susBlockPos.getX();
-                        susBlockZ = analysis.susBlockPos.getZ();
-                    }
+            int susBlockX = analysis.susBlockPos != null ? analysis.susBlockPos.getX() : pos.getStartX() + 8;
+            int susBlockZ = analysis.susBlockPos != null ? analysis.susBlockPos.getZ() : pos.getStartZ() + 8;
+            int finalX = susBlockX;
+            int finalZ = susBlockZ;
+            String reasonStr = reasons.toString().trim();
 
-                    int finalX = susBlockX;
-                    int finalZ = susBlockZ;
+            mc.execute(() -> {
+                if (mc.player == null) return;
 
-                    mc.execute(() -> {
-                        if (mc.player != null) {
-                            mc.getSoundManager().play(new PositionedSoundInstance(
-                                    SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP,
-                                    SoundCategory.MASTER,
-                                    1.0F,
-                                    1.0F,
-                                    Random.create(),
-                                    mc.player.getBlockPos()
-                            ));
+                mc.getSoundManager().play(new PositionedSoundInstance(
+                        SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP,
+                        SoundCategory.MASTER,
+                        1.0F, 1.0F,
+                        Random.create(),
+                        mc.player.getBlockPos()
+                ));
 
-                            mc.player.sendMessage(
-                                    net.minecraft.text.Text.literal(
-                                            "§6[Chunk Finder] §f" + reasons.toString().trim() + " §7(X: " + finalX
-                                                    + " Z: " + finalZ + ")"),
-                                    false);
-                        }
-
-                        if (this.alertCoorrds.getValue()) {
-                            CustomToast.show(Items.ENDER_EYE, "Chunk Finder", "X: " + finalX + " Z: " + finalZ);
-                        } else {
-                            CustomToast.show(Items.ENDER_EYE, "Chunk Finder", "Suspicious Chunk Detected");
-                        }
-                    });
-                }
-            }
+                String coords = alertCoords.getValue()
+                        ? " §7(X: " + finalX + " Z: " + finalZ + ")"
+                        : "";
+                mc.player.sendMessage(
+                        net.minecraft.text.Text.literal("§6[Chunk Finder] §f" + reasonStr + coords),
+                        false);
+            });
         }
     }
 
     private Color getSelectedColor(int alpha) {
-        ChunkColor val = this.chunkColor.getValue();
-        return switch (val) {
+        return switch (chunkColor.getValue()) {
             case RED    -> new Color(255, 50,  50,  alpha);
             case WHITE  -> new Color(255, 255, 255, alpha);
             case YELLOW -> new Color(255, 220, 0,   alpha);
             case CYAN   -> new Color(0,   220, 255, alpha);
             case ORANGE -> new Color(255, 140, 0,   alpha);
-            default     -> new Color(0,   255, 0,   alpha); // GREEN
+            default     -> new Color(0,   255, 0,   alpha);
         };
     }
 
-    private void renderFlaggedChunks(net.minecraft.client.util.math.MatrixStack matrices) {
+    private void renderFlaggedChunks(MatrixStack matrices) {
         if (this.flaggedChunks.isEmpty() || mc.player == null) return;
 
         Camera cam = RenderUtils.getCamera();
-        Vec3d camPos = RenderUtils.getCameraPos();
+        Vec3d camPos = RenderUtils.getCameraPos(cam);
 
-        int rendered = 0;
         int renderY = 63;
-
-        Color fillColor    = getSelectedColor(120);
+        Color fillColor    = getSelectedColor(80);
         Color outlineColor = new Color(255, 255, 255, 200);
         Color tracerColor  = getSelectedColor(200);
 
-        matrices.push();
-        matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(cam.getPitch()));
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(cam.getYaw() + 180.0f));
+        int rendered = 0;
 
-        for (ChunkPos pos : this.flaggedChunks) {
-            if (rendered++ >= 5000) break;
-            double x = pos.getStartX() - camPos.x;
-            double z = pos.getStartZ() - camPos.z;
-            double y = renderY - camPos.y;
-            renderRoundedChunk(matrices, x, y, z, 16.0, 2.5, fillColor, outlineColor);
-        }
-
-        matrices.pop();
-
-        if (this.tracer.getValue()) {
-            rendered = 0;
+        try (RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices)) {
             matrices.push();
             matrices.translate(-camPos.x, -camPos.y, -camPos.z);
 
             for (ChunkPos pos : this.flaggedChunks) {
-                if (rendered++ >= 5000) break;
-                double chunkCX = pos.getStartX() + 8.0;
-                double chunkCZ = pos.getStartZ() + 8.0;
-                RenderUtils.renderLine(
-                        matrices,
-                        tracerColor,
-                        new Vec3d(camPos.x, camPos.y, camPos.z),
-                        new Vec3d(chunkCX, renderY, chunkCZ));
+                if (rendered++ >= 500) break;
+
+                double x1 = pos.getStartX();
+                double z1 = pos.getStartZ();
+                double x2 = x1 + 16.0;
+                double z2 = z1 + 16.0;
+                double y1 = renderY;
+                double y2 = renderY + 0.15;
+
+                batch.renderFilledBox(x1, y1, z1, x2, y2, z2, fillColor);
+                batch.renderOutlineBox(x1, y1, z1, x2, y2, z2, outlineColor);
+
+                if (tracer.getValue()) {
+                    batch.renderLine(
+                            tracerColor,
+                            camPos,
+                            new Vec3d(pos.getStartX() + 8.0, renderY, pos.getStartZ() + 8.0),
+                            2.0f
+                    );
+                }
             }
 
             matrices.pop();
+            batch.flush();
         }
-    }
-
-    private void renderRoundedChunk(net.minecraft.client.util.math.MatrixStack matrices,
-                                    double ox, double oy, double oz,
-                                    double size, double radius,
-                                    Color fill, Color outline) {
-        com.mojang.blaze3d.systems.RenderSystem.enableBlend();
-        com.mojang.blaze3d.systems.RenderSystem.disableDepthTest();
-        com.mojang.blaze3d.systems.RenderSystem.defaultBlendFunc();
-        com.mojang.blaze3d.systems.RenderSystem.setShader(net.minecraft.client.render.GameRenderer::getPositionColorProgram);
-
-        org.joml.Matrix4f mat = matrices.peek().getPositionMatrix();
-        float fy = (float) oy;
-
-        double r = radius;
-        double[] cx = { ox + r,        ox + size - r, ox + size - r, ox + r        };
-        double[] cz = { oz + r,        oz + r,        oz + size - r, oz + size - r  };
-
-        int segments = 12;
-
-        float fr = fill.getRed()   / 255f;
-        float fg = fill.getGreen() / 255f;
-        float fb = fill.getBlue()  / 255f;
-        float fa = fill.getAlpha() / 255f;
-
-        net.minecraft.client.render.BufferBuilder buf =
-                net.minecraft.client.render.Tessellator.getInstance()
-                        .begin(net.minecraft.client.render.VertexFormat.DrawMode.TRIANGLE_FAN,
-                               net.minecraft.client.render.VertexFormats.POSITION_COLOR);
-
-        buf.vertex(mat, (float)(ox + size / 2), fy, (float)(oz + size / 2)).color(fr, fg, fb, fa);
-
-        for (int corner = 0; corner < 4; corner++) {
-            double startAngle = corner * 90.0;
-            for (int s = 0; s <= segments; s++) {
-                double angle = Math.toRadians(startAngle + s * 90.0 / segments);
-                float vx = (float)(cx[corner] + Math.cos(angle) * r);
-                float vz = (float)(cz[corner] + Math.sin(angle) * r);
-                buf.vertex(mat, vx, fy, vz).color(fr, fg, fb, fa);
-            }
-        }
-        double angle0 = Math.toRadians(0);
-        buf.vertex(mat, (float)(cx[0] + Math.cos(angle0) * r), fy, (float)(cz[0] + Math.sin(angle0) * r))
-           .color(fr, fg, fb, fa);
-
-        net.minecraft.client.render.BufferRenderer.drawWithGlobalProgram(buf.end());
-
-        float or2 = outline.getRed()   / 255f;
-        float og  = outline.getGreen() / 255f;
-        float ob  = outline.getBlue()  / 255f;
-        float oa  = outline.getAlpha() / 255f;
-
-        net.minecraft.client.render.BufferBuilder obuf =
-                net.minecraft.client.render.Tessellator.getInstance()
-                        .begin(net.minecraft.client.render.VertexFormat.DrawMode.DEBUG_LINE_STRIP,
-                               net.minecraft.client.render.VertexFormats.POSITION_COLOR);
-
-        for (int corner = 0; corner < 4; corner++) {
-            double startAngle = corner * 90.0;
-            for (int s = 0; s <= segments; s++) {
-                double ang = Math.toRadians(startAngle + s * 90.0 / segments);
-                float vx = (float)(cx[corner] + Math.cos(ang) * r);
-                float vz = (float)(cz[corner] + Math.sin(ang) * r);
-                obuf.vertex(mat, vx, fy, vz).color(or2, og, ob, oa);
-            }
-        }
-        double ang0 = Math.toRadians(0);
-        obuf.vertex(mat, (float)(cx[0] + Math.cos(ang0) * r), fy, (float)(cz[0] + Math.sin(ang0) * r))
-            .color(or2, og, ob, oa);
-
-        net.minecraft.client.render.BufferRenderer.drawWithGlobalProgram(obuf.end());
-
-        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-        com.mojang.blaze3d.systems.RenderSystem.enableDepthTest();
-        com.mojang.blaze3d.systems.RenderSystem.disableBlend();
     }
 
     private static class ChunkAnalysis {
