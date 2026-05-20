@@ -182,7 +182,9 @@ try {
     batch.flush();
 } finally {
     batch.close();
-}
+     }
+   }     
+    
     private static final class ChunkScanResult {
         private final float score;
         private final int indicatorCount;
