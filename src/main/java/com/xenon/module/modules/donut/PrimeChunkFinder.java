@@ -41,8 +41,8 @@ public final class PrimeChunkFinder extends Module {
     private int scanCursor;
     private int tickCounter;
 
-    public ChunkFinder() {
-        super("CPrimehunkFinder", Category.DONUT);
+    public PrimeChunkFinder() {
+        super("PrimeChunkFinder", Category.DONUT);
     }
 
     @Override
