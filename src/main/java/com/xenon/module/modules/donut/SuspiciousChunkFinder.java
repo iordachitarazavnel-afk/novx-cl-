@@ -214,4 +214,3 @@ this.originWeights = originWeights;
         VINES,
         ROTATED
     }
-}
