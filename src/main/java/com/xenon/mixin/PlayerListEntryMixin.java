@@ -2,7 +2,6 @@ package com.xenon.mixin;
 
 import com.mojang.authlib.GameProfile;
 import com.xenon.module.modules.donut.FakeRoles;
-import com.xenon.module.modules.misc.SkinChanger;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.entity.player.SkinTextures;
@@ -25,12 +24,6 @@ public abstract class PlayerListEntryMixin {
         if (profile == null || profile.id() == null) {
             return;
         }
-
-        SkinTextures override = SkinChanger.getOverrideSkin(profile.id());
-        if (override != null) {
-            cir.setReturnValue(override);
-        }
-    }
 
     @Inject(method = "getDisplayName", at = @At("RETURN"), cancellable = true)
     private void xenon$fakeRoleDisplayName(CallbackInfoReturnable<Text> cir) {
