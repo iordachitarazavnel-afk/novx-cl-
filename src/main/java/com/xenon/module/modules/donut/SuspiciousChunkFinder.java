@@ -157,7 +157,7 @@ try {
     matrices.push();
     matrices.translate(-camPos.x, -camPos.y, -camPos.z);
 
-    for (ChunkPos pos : detectedChunks) {
+    for (ChunkPos pos : this.flaggedChunks) {
         double x1 = pos.getStartX();
         double z1 = pos.getStartZ();
         double x2 = x1 + 16.0;
