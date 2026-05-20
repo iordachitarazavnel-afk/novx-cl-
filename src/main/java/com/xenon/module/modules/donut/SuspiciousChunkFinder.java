@@ -152,12 +152,11 @@ public class SuspiciousChunkFinder extends Module {
 
         int renderY = (int) mc.player.getY();
 
-        RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices);
-        try {
+        try (RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices)) {
             matrices.push();
             matrices.translate(-camPos.x, -camPos.y, -camPos.z);
 
-            for (ChunkPos pos : this.detectedChunks) {
+            for (ChunkPos pos : detectedChunks) {
                 double x1 = pos.getStartX();
                 double z1 = pos.getStartZ();
                 double x2 = x1 + 16.0;
@@ -180,11 +179,9 @@ public class SuspiciousChunkFinder extends Module {
 
             matrices.pop();
             batch.flush();
-        } finally {
-            batch.end();
         }
-    }    
-    
+    }
+
     private static final class ChunkScanResult {
         private final float score;
         private final int indicatorCount;
