@@ -440,8 +440,7 @@ public final class ChunkFinderV2 extends Module {
             int x = chunkPos.getStartX() + 8;
             int z = chunkPos.getStartZ() + 8;
 
-            mc.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0f));
-                    SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 0.8F));
+            mc.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F));
 
             if (mc.getToastManager() != null) {
                 mc.getToastManager().add(new ChunkFinderToast(
