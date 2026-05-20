@@ -153,37 +153,37 @@ public class SuspiciousChunkFinder extends Module {
         int renderY = (int) mc.player.getY();
 
         RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices);
-try {
-    matrices.push();
-    matrices.translate(-camPos.x, -camPos.y, -camPos.z);
+        try {
+            matrices.push();
+            matrices.translate(-camPos.x, -camPos.y, -camPos.z);
 
-    for (ChunkPos pos : this.flaggedChunks) {
-        double x1 = pos.getStartX();
-        double z1 = pos.getStartZ();
-        double x2 = x1 + 16.0;
-        double z2 = z1 + 16.0;
-        double y1 = renderY - 0.1;
-        double y2 = renderY + 0.15;
+            for (ChunkPos pos : this.detectedChunks) {
+                double x1 = pos.getStartX();
+                double z1 = pos.getStartZ();
+                double x2 = x1 + 16.0;
+                double z2 = z1 + 16.0;
+                double y1 = renderY - 0.1;
+                double y2 = renderY + 0.15;
 
-        batch.renderFilledBox(x1, y1, z1, x2, y2, z2, fillColor);
-        batch.renderOutlineBox(x1, y1, z1, x2, y2, z2, outlineColor);
+                batch.renderFilledBox(x1, y1, z1, x2, y2, z2, fillColor);
+                batch.renderOutlineBox(x1, y1, z1, x2, y2, z2, outlineColor);
 
-        if (renderTracersSetting.getValue()) {
-            batch.renderLine(
-                    tracerColor,
-                    camPos,
-                    new Vec3d(pos.getStartX() + 8.0, mc.player.getY(), pos.getStartZ() + 8.0),
-                    2.0f
-            );
+                if (renderTracersSetting.getValue()) {
+                    batch.renderLine(
+                            tracerColor,
+                            camPos,
+                            new Vec3d(pos.getStartX() + 8.0, mc.player.getY(), pos.getStartZ() + 8.0),
+                            2.0f
+                    );
+                }
+            }
+
+            matrices.pop();
+            batch.flush();
+        } finally {
+            batch.end();
         }
-    }
-
-    matrices.pop();
-    batch.flush();
-} finally {
-    batch.end()
-     }
-   }     
+    }    
     
     private static final class ChunkScanResult {
         private final float score;
