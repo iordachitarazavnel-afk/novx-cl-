@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class ChunkFinder extends Module {
+public final class PrimeChunkFinder extends Module {
     private static final int BEEHIVE_MIN_LOADED_TICKS = 200;
     private static final int CHUNKS_PER_TICK = 8;
     private static final Color FILL_COLOR = new Color(5, 130, 45, 190);
@@ -42,7 +42,7 @@ public final class ChunkFinder extends Module {
     private int tickCounter;
 
     public ChunkFinder() {
-        super("ChunkFinder", Category.DONUT);
+        super("CPrimehunkFinder", Category.DONUT);
     }
 
     @Override
@@ -152,7 +152,7 @@ public final class ChunkFinder extends Module {
         if (mc.getToastManager() == null) return;
 
         mc.getToastManager().add(new ChunkFinderToast(
-                Text.literal("ChunkFinder"),
+                Text.literal("PrimeChunkFinder"),
                 Text.literal("Full beehive at X:" + chunk.getCenterX() + " Z:" + chunk.getCenterZ()),
                 new ItemStack(Items.ENDER_EYE)
         ));
