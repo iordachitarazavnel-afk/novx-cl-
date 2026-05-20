@@ -527,15 +527,14 @@ public class ChunkFinder extends Module {
 
         int rendered = 0;
 
-        RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices);
+       RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices);
 try {
     matrices.push();
     matrices.translate(-camPos.x, -camPos.y, -camPos.z);
-} finally {
-    batch.close();
-}
-            for (ChunkPos pos : this.flaggedChunks) {
-                if (rendered++ >= 500) break;
+    
+    // Bucla for trebuie să fie AICI, în interiorul lui try
+    for (ChunkPos pos : this.flaggedChunks) {
+        if (rendered++ >= 500) break;
 
                 double x1 = pos.getStartX();
                 double z1 = pos.getStartZ();
