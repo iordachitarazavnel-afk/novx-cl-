@@ -18,7 +18,7 @@ public abstract class PlayerListEntryMixin {
     @Shadow
     public abstract GameProfile getProfile();
 
-    @@Inject(method = "getSkinTextures", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getSkinTextures", at = @At("HEAD"), cancellable = true)
     private void xenon$overrideListEntrySkin(CallbackInfoReturnable<SkinTextures> cir) {
         GameProfile profile = getProfile();
         if (profile == null || profile.id() == null) {
