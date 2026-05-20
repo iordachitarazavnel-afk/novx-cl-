@@ -527,50 +527,60 @@ public class ChunkFinder extends Module {
 
         int rendered = 0;
 
-       RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices);
+       RRenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices);
 
 try {
 
     for (ChunkPos pos : suspiciousChunks) {
 
         double x1 = pos.getStartX();
+        double y1 = mc.world.getBottomY();
         double z1 = pos.getStartZ();
 
-        // render code aici
+        double x2 = x1 + 16;
+        double y2 = mc.world.getTopY();
+        double z2 = z1 + 16;
+
+        // Box render
+        RenderUtils.drawBox(
+            matrices,
+            x1, y1, z1,
+            x2, y2, z2,
+            1.0f, 0.0f, 0.0f, 0.25f
+        );
+
+        // Outline render
+        RenderUtils.drawOutline(
+            matrices,
+            x1, y1, z1,
+            x2, y2, z2,
+            1.0f, 0.0f, 0.0f, 1.0f
+        );
+
+        // Optional tracer
+        if (renderTracersSetting.getValue()) {
+
+            Vec3d cam = mc.gameRenderer.getCamera().getPos();
+
+            RenderUtils.drawLine(
+                matrices,
+                cam.x,
+                cam.y,
+                cam.z,
+                x1 + 8,
+                y1 + 1,
+                z1 + 8,
+                1.0f,
+                0.0f,
+                0.0f,
+                1.0f
+            );
+        }
     }
 
 } finally {
     RenderUtils.endWorldBatch(batch);
 }
-        
-    for (ChunkPos pos : suspiciousChunks) {
-        double x1 = pos.getStartX();
-        double z1 = pos.getStartZ();
-        double x2 = x1 + 16.0;
-        double z2 = z1 + 16.0;
-        double y1 = renderY - 0.1;
-        double y2 = renderY + 0.15;
-
-        batch.renderFilledBox(x1, y1, z1, x2, y2, z2, fillColor);
-        batch.renderOutlineBox(x1, y1, z1, x2, y2, z2, outlineColor);
-
-        if (renderTracersSetting.getValue()) {
-            batch.renderLine(
-                    tracerColor,
-                    camPos,
-                    new Vec3d(pos.getStartX() + 8.0, mc.player.getY(), pos.getStartZ() + 8.0),
-                    2.0f
-            );
-        }
-    }
-
-    matrices.pop();
-    batch.flush();
-} finally {
-    batch.end();
-     }
-  }      
-
     private static class ChunkAnalysis {
         int rotatedCount = 0;
         boolean hasLongDripstone = false;
