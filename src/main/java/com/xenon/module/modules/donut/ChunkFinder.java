@@ -527,7 +527,7 @@ public class ChunkFinder extends Module {
 
         int rendered = 0;
 
-       RRenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices);
+       RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices);
 
 try {
 
@@ -581,7 +581,9 @@ try {
 } finally {
     RenderUtils.endWorldBatch(batch);
 }
-    private static class ChunkAnalysis {
+}
+
+private static class ChunkAnalysis {
         int rotatedCount = 0;
         boolean hasLongDripstone = false;
         boolean hasLongVine = false;
