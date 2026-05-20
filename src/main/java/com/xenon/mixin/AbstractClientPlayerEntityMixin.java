@@ -1,6 +1,5 @@
 package com.xenon.mixin;
 
-import com.xenon.module.modules.misc.SkinChanger;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.entity.player.SkinTextures;
 import org.spongepowered.asm.mixin.Mixin;
