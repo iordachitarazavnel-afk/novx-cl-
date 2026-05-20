@@ -557,7 +557,8 @@ try {
     batch.flush();
 } finally {
     batch.close();
-}
+     }
+  }      
 
     private static class ChunkAnalysis {
         int rotatedCount = 0;
