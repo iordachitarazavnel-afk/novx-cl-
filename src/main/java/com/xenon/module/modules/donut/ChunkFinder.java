@@ -556,7 +556,7 @@ try {
     matrices.pop();
     batch.flush();
 } finally {
-    batch.close();
+    batch.end()
      }
   }      
 
