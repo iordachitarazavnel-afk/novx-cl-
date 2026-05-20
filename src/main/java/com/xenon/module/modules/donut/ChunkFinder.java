@@ -68,7 +68,7 @@ public class ChunkFinder extends Module {
     private volatile boolean scanning = false;
     private long lastQueueRebuild = 0L;
 
-    public ChunkFinderV2() {
+    public ChunkFinder() {
         super("Chunk Finder", "Detects suspicious chunks", -1, Category.DONUT);
         this.addSettings(
                 this.alertCoorrds, this.showReasons,
