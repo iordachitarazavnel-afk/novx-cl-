@@ -1,33 +1,21 @@
 package com.xenon.module.modules.donut;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.block.AmethystClusterBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.VineBlock;
-import net.minecraft.client.render.Camera;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.ChunkSection;
-import net.minecraft.world.chunk.WorldChunk;
-import com.xenon.event.EventListener;
-import com.xenon.event.events.Render3DEvent;
-import com.xenon.event.events.TickEvent;
 import com.xenon.module.Category;
 import com.xenon.module.Module;
 import com.xenon.setting.Setting;
 import com.xenon.utils.RenderUtils;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.math.*;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.ChunkSection;
+import net.minecraft.world.chunk.WorldChunk;
 
-import java.util.ArrayList;
+import java.awt.*;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,8 +34,10 @@ public class SuspiciousChunkFinder extends Module {
     private ExecutorService scanExecutor;
 
     public SuspiciousChunkFinder() {
-        super("Sus Chunk Finder", "Advanced generation bug analyzer", -1, Category.DONUT);
-        this.addSettings(this.minPointsSetting, this.scanRadiusSetting, this.renderTracersSetting);
+        super("Sus Chunk Finder", Category.DONUT);
+        addSetting(minPointsSetting);
+        addSetting(scanRadiusSetting);
+        addSetting(renderTracersSetting);
     }
 
     @Override
@@ -64,10 +54,13 @@ public class SuspiciousChunkFinder extends Module {
             this.scanExecutor.shutdownNow();
             this.scanExecutor = null;
         }
+        this.detectedChunks.clear();
+        this.chunkResults.clear();
+        this.activelyScanning.clear();
     }
 
-    @EventListener
-    public void onTick(TickEvent event) {
+    @Override
+    public void onTick() {
         if (mc.world == null || mc.player == null || this.scanExecutor == null) return;
 
         ChunkPos playerChunk = mc.player.getChunkPos();
@@ -121,7 +114,7 @@ public class SuspiciousChunkFinder extends Module {
                         if (state.isOf(Blocks.AIR)) continue;
 
                         mutable.set(chunkPos.getStartX() + x, worldY + y, chunkPos.getStartZ() + z);
-                        
+
                         if (state.isOf(Blocks.DEEPSLATE) && state.contains(Properties.AXIS)) {
                             if (state.get(Properties.AXIS) != Direction.Axis.Y && mutable.getY() < 16) {
                                 rotated++;
@@ -146,27 +139,47 @@ public class SuspiciousChunkFinder extends Module {
         return new ChunkScanResult(totalScore, indicator, amethyst, growth, rotated, 0, map);
     }
 
-    @EventListener
-    public void onRender(Render3DEvent event) {
+    @Override
+    public void onRender(MatrixStack matrices, float tickDelta) {
         if (mc.player == null || detectedChunks.isEmpty()) return;
 
         Camera cam = RenderUtils.getCamera();
-        Vec3d camPos = RenderUtils.getCameraPos();
+        Vec3d camPos = RenderUtils.getCameraPos(cam);
 
-        event.matrixStack.push();
-        event.matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(cam.getPitch()));
-        event.matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(cam.getYaw() + 180.0f));
+        Color tracerColor = new Color(255, 170, 0, 200);
+        Color fillColor   = new Color(255, 170, 0, 60);
+        Color outlineColor = new Color(255, 170, 0, 200);
 
-        for (ChunkPos pos : detectedChunks) {
-            double cx = pos.getStartX() - camPos.x;
-            double cz = pos.getStartZ() - camPos.z;
-            double cy = mc.player.getY() - 2 - camPos.y;
+        int renderY = (int) mc.player.getY();
 
-            if (this.renderTracersSetting.getValue()) {
-                RenderUtils.renderLine(event.matrixStack, new Color(255, 170, 0, 200), camPos, new Vec3d(pos.getStartX() + 8, mc.player.getY(), pos.getStartZ() + 8));
+        try (RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices)) {
+            matrices.push();
+            matrices.translate(-camPos.x, -camPos.y, -camPos.z);
+
+            for (ChunkPos pos : detectedChunks) {
+                double x1 = pos.getStartX();
+                double z1 = pos.getStartZ();
+                double x2 = x1 + 16.0;
+                double z2 = z1 + 16.0;
+                double y1 = renderY - 0.1;
+                double y2 = renderY + 0.15;
+
+                batch.renderFilledBox(x1, y1, z1, x2, y2, z2, fillColor);
+                batch.renderOutlineBox(x1, y1, z1, x2, y2, z2, outlineColor);
+
+                if (renderTracersSetting.getValue()) {
+                    batch.renderLine(
+                            tracerColor,
+                            camPos,
+                            new Vec3d(pos.getStartX() + 8.0, mc.player.getY(), pos.getStartZ() + 8.0),
+                            2.0f
+                    );
+                }
             }
+
+            matrices.pop();
+            batch.flush();
         }
-        event.matrixStack.pop();
     }
 
     private static final class ChunkScanResult {
@@ -178,8 +191,8 @@ public class SuspiciousChunkFinder extends Module {
         private final int sourceHitsLocal;
         private final Map<OriginType, Integer> originWeights;
 
-        private ChunkScanResult(float score, int indicatorCount, int amethystHits, int growthHits, int rotatedHits,
-                int sourceHitsLocal, Map<OriginType, Integer> originWeights) {
+        private ChunkScanResult(float score, int indicatorCount, int amethystHits, int growthHits,
+                                int rotatedHits, int sourceHitsLocal, Map<OriginType, Integer> originWeights) {
             this.score = score;
             this.indicatorCount = indicatorCount;
             this.amethystHits = amethystHits;
