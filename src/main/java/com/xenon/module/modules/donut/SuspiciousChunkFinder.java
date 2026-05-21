@@ -152,14 +152,10 @@ public class SuspiciousChunkFinder extends Module {
 
         int renderY = (int) mc.player.getY();
 
-        RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices);
+        try (RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices)) {
+            matrices.push();
+            matrices.translate(-camPos.x, -camPos.y, -camPos.z);
 
-try {
-
-} finally {
-    batch.end();
-}
-        
             for (ChunkPos pos : detectedChunks) {
                 double x1 = pos.getStartX();
                 double z1 = pos.getStartZ();
@@ -198,19 +194,14 @@ try {
         private ChunkScanResult(float score, int indicatorCount, int amethystHits, int growthHits,
                                 int rotatedHits, int sourceHitsLocal, Map<OriginType, Integer> originWeights) {
             this.score = score;
-this.indicatorCount = indicatorCount;
-this.amethystHits = amethystHits;
-this.growthHits = growthHits;
-this.rotatedHits = rotatedHits;
-this.sourceHitsLocal = sourceHitsLocal;
-this.originWeights = originWeights;
-               }
+            this.indicatorCount = indicatorCount;
+            this.amethystHits = amethystHits;
+            this.growthHits = growthHits;
+            this.rotatedHits = rotatedHits;
+            this.sourceHitsLocal = sourceHitsLocal;
+            this.originWeights = originWeights;
+        }
     }
 
-    private enum OriginType {
-        AMETHYST,
-        KELP,
-        CAVE_VINES,
-        VINES,
-        ROTATED
-    }
+    private enum OriginType { AMETHYST, KELP, CAVE_VINES, VINES, ROTATED }
+        }
