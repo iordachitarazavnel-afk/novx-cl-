@@ -30,6 +30,7 @@ import com.xenon.module.modules.donut.FakeRoles;
 import com.xenon.module.modules.donut.GrowthFinder;
 import com.xenon.module.modules.donut.FakeStats;
 import com.xenon.module.modules.donut.SpawnerProtect;
+import com.xenon.module.modules.donut.SuspiciousChunkFinderV2;
 import com.xenon.module.modules.misc.AutoLog;
 import com.xenon.module.modules.misc.AutoTool;
 import com.xenon.module.modules.misc.CoordSnapper;
@@ -139,6 +140,7 @@ public class ModuleManager {
         modules.add(new ActivityDebug());
         modules.add(new ChunkFinderV2());
         modules.add(new PrimeChunkFinder());
+        modules.add(new SuspiciousChunkFinderV2());
         modules.add(new SuspiciousChunkFinder());
         modules.add(new FakeStats());
         modules.add(new FakeRoles());
