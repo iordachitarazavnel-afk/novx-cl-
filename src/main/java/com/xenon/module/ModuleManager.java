@@ -20,6 +20,9 @@ import com.xenon.module.modules.combat.ShieldBreaker;
 import com.xenon.module.modules.combat.SpearSwap;
 import com.xenon.module.modules.combat.Triggerbot;
 import com.xenon.module.modules.donut.ActivityDebug;
+import com.xenon.module.modules.donut.ChunkFinderV2;
+import com.xenon.module.modules.donut.PrimeChunkFinder;
+import com.xenon.module.modules.donut.SuspiciousChunkFinder;
 import com.xenon.module.modules.donut.BoneDropperBot;
 import com.xenon.module.modules.donut.ChunkFinder;
 import com.xenon.module.modules.donut.AntiTrap;
@@ -134,6 +137,9 @@ public class ModuleManager {
         modules.add(new WeatherNotifier());
 
         modules.add(new ActivityDebug());
+        modules.add(new ChunkFinderV2());
+        modules.add(new PrimeChunkFinder());
+        modules.add(new SuspiciousChunkFinder());
         modules.add(new FakeStats());
         modules.add(new FakeRoles());
         modules.add(new ChunkFinder());
