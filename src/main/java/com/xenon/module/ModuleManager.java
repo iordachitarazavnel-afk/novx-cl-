@@ -31,6 +31,13 @@ import com.xenon.module.modules.donut.GrowthFinder;
 import com.xenon.module.modules.donut.FakeStats;
 import com.xenon.module.modules.donut.SpawnerProtect;
 import com.xenon.module.modules.donut.SuspiciousChunkFinderV2;
+import com.xenon.module.modules.donut.ChunkDebug;
+import com.xenon.module.modules.donut.SpawnerSoundRadar;
+import com.xenon.module.modules.donut.AmethystLodeFinder;
+import com.xenon.module.modules.donut.ArchonRadar;
+import com.xenon.module.modules.donut.SuspiciousChunkFinderV2;
+import com.xenon.module.modules.render.ActiveRedstone;
+import com.xenon.module.modules.misc.AutoRelog;
 import com.xenon.module.modules.misc.AutoLog;
 import com.xenon.module.modules.misc.AutoTool;
 import com.xenon.module.modules.misc.CoordSnapper;
@@ -100,6 +107,7 @@ public class ModuleManager {
 
         modules.add(new PlayerESP());
         modules.add(new BlockESP());
+        modules.add(new ActiveRedstone());
         modules.add(new AmethystESP());
         modules.add(new MobESP());
         modules.add(new StorageESP());
@@ -125,6 +133,7 @@ public class ModuleManager {
         modules.add(new SpearSwap());
 
         modules.add(new NameProtect());
+        modules.add(new AutoRelog());
         modules.add(new NameTags());
         modules.add(new CoordSnapper());
         modules.add(new HomeSetter());
@@ -138,6 +147,10 @@ public class ModuleManager {
         modules.add(new WeatherNotifier());
 
         modules.add(new ActivityDebug());
+        modules.add(new ChunkDebug());
+modules.add(new SpawnerSoundRadar());
+modules.add(new AmethystLodeFinder());
+modules.add(new ArchonRadar());
         modules.add(new ChunkFinderV2());
         modules.add(new PrimeChunkFinder());
         modules.add(new SuspiciousChunkFinderV2());
