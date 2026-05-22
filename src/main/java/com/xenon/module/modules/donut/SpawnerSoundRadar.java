@@ -62,7 +62,7 @@ public class SpawnerSoundRadar extends Module {
         if (!(packet instanceof PlaySoundS2CPacket pkt)) return;
         if (mc.player == null) return;
 
-        String key = pkt.getSound().value().getId().toString();
+        String key = net.minecraft.registry.Registries.SOUND_EVENT.getId(pkt.getSound().value()).toString();
         boolean matched = broadMatch.getValue() ? key.contains("spawner") : key.equals("minecraft:entity.mob_spawner.ambient");
         if (!matched) return;
 
@@ -70,7 +70,7 @@ public class SpawnerSoundRadar extends Module {
         double sy = pkt.getY();
         double sz = pkt.getZ();
         Vec3d soundPos = new Vec3d(sx, sy, sz);
-        double dist = mc.player.getPos().distanceTo(soundPos);
+        double dist = mc.player.squaredDistanceTo(soundPos.x, soundPos.y, soundPos.z); dist = Math.sqrt(dist);
         if (dist > maxRange.getValue()) return;
 
         double radius = clusterRadius.getValue();
@@ -154,3 +154,4 @@ public class SpawnerSoundRadar extends Module {
         void addHit() { hits++; lastMs = System.currentTimeMillis(); }
     }
 }
+
