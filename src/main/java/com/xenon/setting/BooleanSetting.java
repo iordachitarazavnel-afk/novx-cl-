@@ -6,11 +6,7 @@ public class BooleanSetting extends Setting<Boolean> {
         super(name, defaultValue);
     }
 
-    public boolean getValue() {
-        return super.getValue();
-    }
-
     public void toggle() {
-        setValue(!getValue());
+        setValue(!super.getValue());
     }
 }
