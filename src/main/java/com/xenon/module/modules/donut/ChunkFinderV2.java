@@ -414,8 +414,12 @@ public final class ChunkFinderV2 extends Module {
             int x = chunkPos.getStartX() + 8;
             int z = chunkPos.getStartZ() + 8;
 
-            mc.getSoundManager().play(PositionedSoundInstance.master(
-                    SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 0.8F));
+            mc.getSoundManager().play(new PositionedSoundInstance(
+                    SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP,
+                    net.minecraft.sound.SoundCategory.MASTER,
+                    1.0F, 0.8F,
+                    net.minecraft.util.math.random.Random.create(),
+                    mc.player.getX(), mc.player.getY(), mc.player.getZ()));
 
             if (mc.getToastManager() != null) {
                 String msg = (reason == null || reason.isBlank())
