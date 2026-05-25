@@ -2,21 +2,18 @@ package com.xenon.module.modules.donut;
 
 import com.xenon.module.Category;
 import com.xenon.module.Module;
-import com.xenon.setting.Setting;
+import com.xenon.setting.BooleanSetting;
+import com.xenon.setting.NumberSetting;
 import com.xenon.utils.RenderUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.render.Camera;
-
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.ItemEntity;
-
-
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.*;
-
 import net.minecraft.world.Heightmap;
 
 import java.awt.*;
@@ -48,33 +45,32 @@ public class ChunkFinder extends Module {
     private static final long RESCAN_INTERVAL_MS = 5000L;
     private static final long QUEUE_REBUILD_INTERVAL_MS = 2000L;
 
-    private final Set<ChunkPos> flaggedChunks = ConcurrentHashMap.newKeySet();
+    private final Set<ChunkPos> flaggedChunks  = ConcurrentHashMap.newKeySet();
     private final Set<ChunkPos> notifiedChunks = ConcurrentHashMap.newKeySet();
-    private final ConcurrentHashMap<ChunkPos, ChunkAnalysis> chunkData = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<ChunkPos, Long> scannedChunks = new ConcurrentHashMap<>();
-    private final Queue<ChunkPos> scanQueue = new ConcurrentLinkedQueue<>();
-    private final AtomicLong activeScans = new AtomicLong(0L);
+    private final ConcurrentHashMap<ChunkPos, ChunkAnalysis> chunkData     = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<ChunkPos, Long>          scannedChunks = new ConcurrentHashMap<>();
+    private final Queue<ChunkPos> scanQueue   = new ConcurrentLinkedQueue<>();
+    private final AtomicLong      activeScans = new AtomicLong(0L);
 
     private final boolean ignorePlayerChunk = true;
-    private final boolean detectItems = true;
-    private final double maxItems = 3.0;
+    private final boolean detectItems       = true;
+    private final double  maxItems          = 3.0;
 
-    private final Setting<Boolean> showReasons   = new Setting<>("Show Reasons", true);
-    private final Setting<Boolean> detectXP      = new Setting<>("Check XP Orbs", true);
-    private final Setting<Float>   maxXP         = new Setting<>("Max XP Orbs", 3.0f, 0.0f, 20.0f);
-    private final Setting<Boolean> alertCoords   = new Setting<>("Alert Coordinates", true);
-    private final Setting<Float>   deepslateThreshold = new Setting<>("Deepslate Limit", 3.0f, 1.0f, 20.0f);
-    private final Setting<Float>   rotatedThreshold   = new Setting<>("Rotated DS Limit", 1.0f, 1.0f, 20.0f);
-    private final Setting<Boolean> tracer        = new Setting<>("Tracer", false);
-    private final Setting<ChunkColor> chunkColor = new Setting<>("Chunk Color", ChunkColor.GREEN);
+    private final BooleanSetting showReasons   = new BooleanSetting("Show Reasons", true);
+    private final BooleanSetting detectXP      = new BooleanSetting("Check XP Orbs", true);
+    private final NumberSetting  maxXP         = new NumberSetting("Max XP Orbs", 0.0, 20.0, 3.0, 1.0);
+    private final BooleanSetting alertCoords   = new BooleanSetting("Alert Coordinates", true);
+    private final NumberSetting  deepslateThreshold = new NumberSetting("Deepslate Limit", 1.0, 20.0, 3.0, 1.0);
+    private final NumberSetting  rotatedThreshold   = new NumberSetting("Rotated DS Limit", 1.0, 20.0, 1.0, 1.0);
+    private final BooleanSetting tracer        = new BooleanSetting("Tracer", false);
 
     private final Map<ChunkPos, Integer> chunkItemCounts = new ConcurrentHashMap<>();
     private final Map<ChunkPos, Integer> chunkXPCounts   = new ConcurrentHashMap<>();
 
-    private ChunkPos lastPlayerChunk = null;
+    private ChunkPos        lastPlayerChunk  = null;
     private ExecutorService pool;
-    private volatile boolean scanning = false;
-    private long lastQueueRebuild = 0L;
+    private volatile boolean scanning       = false;
+    private long            lastQueueRebuild = 0L;
 
     public ChunkFinder() {
         super("Chunk Finder", Category.DONUT);
@@ -85,7 +81,6 @@ public class ChunkFinder extends Module {
         addSetting(deepslateThreshold);
         addSetting(rotatedThreshold);
         addSetting(tracer);
-        addSetting(chunkColor);
     }
 
     @Override
@@ -96,7 +91,7 @@ public class ChunkFinder extends Module {
         this.notifiedChunks.clear();
         this.chunkData.clear();
         this.scanQueue.clear();
-        this.lastPlayerChunk = null;
+        this.lastPlayerChunk  = null;
         this.lastQueueRebuild = 0L;
         this.pool = Executors.newFixedThreadPool(THREAD_COUNT);
     }
@@ -104,16 +99,13 @@ public class ChunkFinder extends Module {
     @Override
     public void onDisable() {
         this.scanning = false;
-        if (this.pool != null) {
-            this.pool.shutdownNow();
-            this.pool = null;
-        }
+        if (this.pool != null) { this.pool.shutdownNow(); this.pool = null; }
         this.scannedChunks.clear();
         this.flaggedChunks.clear();
         this.notifiedChunks.clear();
         this.chunkData.clear();
         this.scanQueue.clear();
-        this.lastPlayerChunk = null;
+        this.lastPlayerChunk  = null;
         this.lastQueueRebuild = 0L;
     }
 
@@ -179,6 +171,16 @@ public class ChunkFinder extends Module {
             int dz = Math.abs(chunk.z - center.z);
             return dx > cleanupRadius || dz > cleanupRadius;
         });
+        this.flaggedChunks.removeIf(chunk -> {
+            int dx = Math.abs(chunk.x - center.x);
+            int dz = Math.abs(chunk.z - center.z);
+            return dx > cleanupRadius || dz > cleanupRadius;
+        });
+        this.notifiedChunks.removeIf(chunk -> {
+            int dx = Math.abs(chunk.x - center.x);
+            int dz = Math.abs(chunk.z - center.z);
+            return dx > cleanupRadius || dz > cleanupRadius;
+        });
     }
 
     private void buildBFSScanQueue(ChunkPos center) {
@@ -231,18 +233,18 @@ public class ChunkFinder extends Module {
     private void analyzeChunk(ChunkPos pos) {
         if (mc.world == null || !this.scanning) return;
 
-        int startX = pos.getStartX();
-        int startZ = pos.getStartZ();
+        int startX    = pos.getStartX();
+        int startZ    = pos.getStartZ();
         int worldMinY = mc.world.getBottomY();
         int worldMaxY = mc.world.getTopY(Heightmap.Type.WORLD_SURFACE, startX + 8, startZ + 8) - 1;
 
         ChunkAnalysis analysis = new ChunkAnalysis();
 
         BlockPos.Mutable mutable = new BlockPos.Mutable();
-        HashSet<Long> dioriteVisited  = new HashSet<>();
-        HashSet<Long> obsidianVisited = new HashSet<>();
-        HashSet<Long> processedVineTops  = new HashSet<>();
-        HashSet<Long> processedKelpBases = new HashSet<>();
+        HashSet<Long> dioriteVisited      = new HashSet<>();
+        HashSet<Long> obsidianVisited     = new HashSet<>();
+        HashSet<Long> processedVineTops   = new HashSet<>();
+        HashSet<Long> processedKelpBases  = new HashSet<>();
         int kelpPlantsFound = 0;
         int fullKelpPlants  = 0;
         BlockPos firstKelpPos = null;
@@ -490,17 +492,6 @@ public class ChunkFinder extends Module {
         }
     }
 
-    private Color getSelectedColor(int alpha) {
-        return switch (chunkColor.getValue()) {
-            case RED    -> new Color(255, 50,  50,  alpha);
-            case WHITE  -> new Color(255, 255, 255, alpha);
-            case YELLOW -> new Color(255, 220, 0,   alpha);
-            case CYAN   -> new Color(0,   220, 255, alpha);
-            case ORANGE -> new Color(255, 140, 0,   alpha);
-            default     -> new Color(0,   255, 0,   alpha);
-        };
-    }
-
     private void renderFlaggedChunks(MatrixStack matrices) {
         if (this.flaggedChunks.isEmpty() || mc.player == null) return;
 
@@ -508,13 +499,13 @@ public class ChunkFinder extends Module {
         Vec3d camPos = RenderUtils.getCameraPos(cam);
 
         int renderY = 63;
-        Color fillColor    = getSelectedColor(80);
+        Color fillColor    = new Color(0, 255, 0, 80);
         Color outlineColor = new Color(255, 255, 255, 200);
-        Color tracerColor  = getSelectedColor(200);
+        Color tracerColor  = new Color(0, 255, 0, 200);
 
-        RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices);
         matrices.push();
         matrices.translate(-camPos.x, -camPos.y, -camPos.z);
+        RenderUtils.WorldBatch batch = RenderUtils.beginWorldBatch(matrices);
 
         int rendered = 0;
         for (ChunkPos pos : this.flaggedChunks) {
@@ -539,7 +530,7 @@ public class ChunkFinder extends Module {
             }
         }
 
-        matrices.pop();
         batch.flush();
+        matrices.pop();
     }
 }
