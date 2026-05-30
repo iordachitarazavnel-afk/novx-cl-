@@ -174,7 +174,11 @@ public final class Hud extends Module {
     }
 
     private static String formatBindLine(Module m) {
-        return m.getName() + " [" + com.xenon.gui.MenuScreen.getKeyName(m.getBind()) + "]";
+        // Înlocuiește linia ta 177 cu această verificare:
+if (m == null) {
+    return "Unknown";
+}
+return m.getName() + " [" + com.xenon.gui.MenuScreen.getKeyName(m.getBind()) + "]";
     }
 
     public static boolean isElementVisible(HudElement el) {
