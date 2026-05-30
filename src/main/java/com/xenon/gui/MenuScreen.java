@@ -690,7 +690,7 @@ public class MenuScreen extends Screen {
     }
 
     // ── Key name ──────────────────────────────────────────────────────────────
-    private String getKeyName(int code) {
+    public static String getKeyName(int code) {
         if (code == 0) return "None";
         String n = GLFW.glfwGetKeyName(code, 0);
         if (n != null && !n.isBlank()) return n.toUpperCase();
