@@ -3,7 +3,7 @@ package com.xenon.module;
 import com.xenon.module.modules.StubModule;
 import com.xenon.module.modules.client.CloudConfigs;
 import com.xenon.module.modules.client.Friends;
-import com.xenon.module.modules.client.Hud;
+//import com.xenon.module.modules.client.Hud;
 import com.xenon.module.modules.client.SpotifyHud;
 import com.xenon.module.modules.client.Themes;
 import com.xenon.module.modules.client.XenonPlus;
@@ -102,7 +102,7 @@ public class ModuleManager {
 
         modules.add(new XenonPlus());
         modules.add(new Themes());
-        modules.add(new Hud());
+        //modules.add(new Hud());
         modules.add(new SpotifyHud());
         modules.add(new Friends());
         modules.add(new CloudConfigs());
