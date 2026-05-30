@@ -23,8 +23,8 @@ import com.xenon.module.modules.donut.ActivityDebug;
 import com.xenon.module.modules.donut.ChunkFinderV2;
 import com.xenon.module.modules.donut.PrimeChunkFinder;
 import com.xenon.module.modules.donut.SuspiciousChunkFinder;
-//import com.xenon.module.modules.donut.HopperDebug;
-//import com.xenon.module.modules.donut.ConnectedDebug;
+import com.xenon.module.modules.donut.HopperDebug;
+import com.xenon.module.modules.donut.ConnectedDebug;
 import com.xenon.module.modules.donut.BoneDropperBot;
 import com.xenon.module.modules.donut.ChunkFinder;
 import com.xenon.module.modules.donut.AntiTrap;
@@ -149,6 +149,8 @@ public class ModuleManager {
         modules.add(new WeatherNotifier());
 
         modules.add(new ActivityDebug());
+        modules.add(new HopperDebug());
+        modules.add(new ConnectedDebug());
         modules.add(new ChunkDebug());
 modules.add(new SpawnerSoundRadar());
 modules.add(new AmethystLodeFinder());
