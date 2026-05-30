@@ -30,7 +30,7 @@ public final class ModuleListHud {
         if (client == null || client.options == null || client.getDebugHud().shouldShowDebugHud()) {
             return;
         }
-        if (client.currentScreen instanceof ClickGUI) {
+        if (client.currentScreen instanceof MenuScreen) {
             return;
         }
 
