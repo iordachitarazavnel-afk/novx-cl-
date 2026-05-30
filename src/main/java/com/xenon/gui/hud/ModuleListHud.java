@@ -3,7 +3,7 @@ package com.xenon.gui.hud;
 import com.xenon.module.Module;
 import com.xenon.module.ModuleManager;
 import com.xenon.utils.renderer.RenderUtil;
-import com.xenon.gui.ClickGUI;
+import com.xenon.gui.MenuScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
