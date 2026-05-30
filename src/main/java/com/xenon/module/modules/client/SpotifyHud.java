@@ -428,7 +428,7 @@ public final class SpotifyHud extends Module {
         if (INSTANCE == null || !INSTANCE.isEnabled()) return;
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc == null || mc.player == null) return;
-        if (mc.currentScreen instanceof ClickGUI) return;
+        if (mc.currentScreen instanceof MenuScreen) return;
         if (mc.getDebugHud().shouldShowDebugHud()) return;
 
         // Delta time & fade-in
