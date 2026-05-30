@@ -1,7 +1,7 @@
 package com.xenon.module.modules.misc;
 
 import com.xenon.XenonClient;
-import com.xenon.gui.ClickGUI;
+import com.xenon.gui.MenuScreen;
 import com.xenon.module.Category;
 import com.xenon.module.Module;
 import com.xenon.module.modules.render.Freecam;
