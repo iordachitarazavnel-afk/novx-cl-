@@ -5,7 +5,7 @@ import com.xenon.module.Module;
 import com.xenon.module.ModuleManager;
 import com.xenon.setting.Setting;
 import com.xenon.utils.renderer.RenderUtil;
-import com.xenon.gui.ClickGUI;
+import com.xenon.gui.MenuScreen;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
