@@ -510,7 +510,7 @@ public final class NameTags extends Module {
     }
 
     private static boolean isMenuOpen() {
-        return mc.currentScreen instanceof ClickGUI;
+        return mc.currentScreen instanceof MenuScreen;
     }
 
     private int getPing(PlayerEntity player) {
