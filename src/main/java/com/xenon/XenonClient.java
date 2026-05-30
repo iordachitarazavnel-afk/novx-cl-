@@ -45,7 +45,7 @@ public class XenonClient implements ClientModInitializer {
 
             while (rightShiftKey.wasPressed()) {
                 if (client.currentScreen == null) {
-                    client.setScreen(new com.xenon.gui.ClickGUI());
+                    client.setScreen(new com.xenon.gui.MenuScreen());
                 }
             }
 
