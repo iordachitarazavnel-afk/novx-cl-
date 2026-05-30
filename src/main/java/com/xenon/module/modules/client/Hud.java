@@ -174,7 +174,7 @@ public final class Hud extends Module {
     }
 
     private static String formatBindLine(Module m) {
-        return m.getName() + " [" + com.xenon.gui.MenuScreen.getKeyDisplayNameStatic(m.getBind()) + "]";
+        return m.getName() + " [" + com.xenon.gui.MenuScreen.getKeyName(m.getBind()) + "]";
     }
 
     public static boolean isElementVisible(HudElement el) {
