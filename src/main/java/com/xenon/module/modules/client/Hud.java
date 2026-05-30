@@ -174,7 +174,7 @@ public final class Hud extends Module {
     }
 
     private static String formatBindLine(Module m) {
-        return m.getName() + " [" + com.xenon.gui.ClickGUI.getKeyDisplayNameStatic(m.getBind()) + "]";
+        return m.getName() + " [" + com.xenon.gui.MenuScreen.getKeyDisplayNameStatic(m.getBind]";
     }
 
     public static boolean isElementVisible(HudElement el) {
@@ -242,7 +242,7 @@ public final class Hud extends Module {
         if (INSTANCE == null || !INSTANCE.isEnabled()) return;
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc == null || mc.player == null || mc.options == null) return;
-        if (mc.currentScreen instanceof ClickGUI) return;
+        if (mc.currentScreen instanceof MenuScreen) return;
         if (mc.getDebugHud().shouldShowDebugHud()) return;
 
         TextRenderer tr = mc.textRenderer;
