@@ -834,7 +834,7 @@ public class MenuScreen extends Screen {
     }
 
     // Public static helper used by Hud.java
-    public static String getKeyName(int keyCode) { // <--- Am schimbat "key" în "keyCode" ca să se potrivească cu restul codului tău
+    public static String getKeyName(int keyCode) { 
     if (keyCode == 0) return "None";
 
     String n = org.lwjgl.glfw.GLFW.glfwGetKeyName(keyCode, 0);
@@ -858,7 +858,7 @@ public class MenuScreen extends Screen {
         case org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT         -> "Left";
         case org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT        -> "Right";
         default -> "Key " + keyCode;
-    }; // <--- Nu uita de punct și virgulă aici după switch expression
+    }; 
 }
 
-} // <--- Ultima acoladă din fișier, cea care închide
+} 
