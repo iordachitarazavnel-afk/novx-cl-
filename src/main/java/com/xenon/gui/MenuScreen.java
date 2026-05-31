@@ -834,31 +834,33 @@ public class MenuScreen extends Screen {
     }
 
     // Public static helper used by Hud.java
-    public static String getKeyName(int key) {
-    if (keyCode == 0) return "None";
+        public static String getKeyName(int keyCode) { 
+        if (keyCode == 0) return "None";
 
-    String n = org.lwjgl.glfw.GLFW.glfwGetKeyName(keyCode, 0);
-    if (n != null && !n.isBlank()) return n.toUpperCase();
+        String n = org.lwjgl.glfw.GLFW.glfwGetKeyName(keyCode, 0);
+        if (n != null && !n.isBlank()) {
+            return n.toUpperCase();
+        }
 
-    return switch (keyCode) {
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT   -> "LShift";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT  -> "RShift";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_CONTROL -> "LCtrl";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_CONTROL-> "RCtrl";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_ALT     -> "LAlt";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_ALT    -> "RAlt";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE        -> "Space";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER        -> "Enter";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE       -> "Esc";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_TAB          -> "Tab";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE    -> "Backspace";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_CAPS_LOCK    -> "Caps";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_UP           -> "Up";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_DOWN         -> "Down";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT         -> "Left";
-        case org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT        -> "Right";
-        default -> "Key " + keyCode;
-    }; 
+        return switch (keyCode) {
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT    -> "LShift";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT   -> "RShift";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_CONTROL  -> "LCtrl";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_CONTROL -> "RCtrl";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_ALT      -> "LAlt";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_ALT     -> "RAlt";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE         -> "Space";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER         -> "Enter";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE        -> "Esc";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_TAB           -> "Tab";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE     -> "Backspace";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_CAPS_LOCK     -> "Caps";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_UP            -> "Up";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_DOWN          -> "Down";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT          -> "Left";
+            case org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT         -> "Right";
+            default -> "Key " + keyCode;
+        };
+    }
+
 }
-
-} 
