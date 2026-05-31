@@ -834,7 +834,7 @@ public class MenuScreen extends Screen {
     }
 
     // Public static helper used by Hud.java
-    public static String getKeyDisplayNameStatic(int keyCode) {
+    public static String getKeyName(int key) { ... }
         if (keyCode == 0) return "None";
         String n = GLFW.glfwGetKeyName(keyCode, 0);
         if (n != null && !n.isBlank()) return n.toUpperCase();
